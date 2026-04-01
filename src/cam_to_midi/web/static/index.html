@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>cam_to_midi</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <header>
+        <div class="header-left">
+            <h1>cam_to_midi</h1>
+            <span class="subtitle">perception &rarr; music</span>
+        </div>
+        <div class="header-right">
+            <span id="connection-status" class="status disconnected">disconnected</span>
+        </div>
+    </header>
+
+    <main>
+        <div class="panel-grid">
+            <!-- Features Panel -->
+            <section class="panel" id="features-panel">
+                <h2>Perception</h2>
+                <div class="features-grid">
+                    <div class="feature" data-feature="change_rate" data-bipolar="true">
+                        <label>change rate</label>
+                        <div class="gauge bipolar">
+                            <div class="gauge-track">
+                                <div class="gauge-fill" id="gauge-change_rate"></div>
+                                <div class="gauge-center"></div>
+                            </div>
+                        </div>
+                        <span class="gauge-value" id="val-change_rate">0.00</span>
+                    </div>
+                    <div class="feature" data-feature="direction" data-bipolar="true">
+                        <label>direction</label>
+                        <div class="gauge bipolar">
+                            <div class="gauge-track">
+                                <div class="gauge-fill" id="gauge-direction"></div>
+                                <div class="gauge-center"></div>
+                            </div>
+                        </div>
+                        <span class="gauge-value" id="val-direction">0.00</span>
+                    </div>
+                    <div class="feature" data-feature="intensity">
+                        <label>intensity</label>
+                        <div class="gauge">
+                            <div class="gauge-track">
+                                <div class="gauge-fill" id="gauge-intensity"></div>
+                            </div>
+                        </div>
+                        <span class="gauge-value" id="val-intensity">0.00</span>
+                    </div>
+                    <div class="feature" data-feature="volatility">
+                        <label>volatility</label>
+                        <div class="gauge">
+                            <div class="gauge-track">
+                                <div class="gauge-fill" id="gauge-volatility"></div>
+                            </div>
+                        </div>
+                        <span class="gauge-value" id="val-volatility">0.00</span>
+                    </div>
+                    <div class="feature" data-feature="periodicity">
+                        <label>periodicity</label>
+                        <div class="gauge">
+                            <div class="gauge-track">
+                                <div class="gauge-fill" id="gauge-periodicity"></div>
+                            </div>
+                        </div>
+                        <span class="gauge-value" id="val-periodicity">0.00</span>
+                    </div>
+                    <div class="feature" data-feature="density">
+                        <label>density</label>
+                        <div class="gauge">
+                            <div class="gauge-track">
+                                <div class="gauge-fill" id="gauge-density"></div>
+                            </div>
+                        </div>
+                        <span class="gauge-value" id="val-density">0.00</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Piano Roll Panel -->
+            <section class="panel" id="pianoroll-panel">
+                <h2>Notes</h2>
+                <canvas id="pianoroll-canvas"></canvas>
+            </section>
+
+            <!-- Music State Panel -->
+            <section class="panel" id="state-panel">
+                <h2>Music</h2>
+                <div class="state-grid">
+                    <div class="state-item">
+                        <span class="state-label">BPM</span>
+                        <span class="state-value" id="state-bpm">120</span>
+                    </div>
+                    <div class="state-item">
+                        <span class="state-label">Key</span>
+                        <span class="state-value" id="state-key">C</span>
+                    </div>
+                    <div class="state-item">
+                        <span class="state-label">Scale</span>
+                        <span class="state-value" id="state-scale">major</span>
+                    </div>
+                    <div class="state-item">
+                        <span class="state-label">Bar</span>
+                        <span class="state-value" id="state-bar">0</span>
+                    </div>
+                    <div class="state-item">
+                        <span class="state-label">Beat</span>
+                        <span class="state-value" id="state-beat">0</span>
+                    </div>
+                </div>
+                <div id="active-notes">
+                    <h3>Active Notes</h3>
+                    <div id="note-display"></div>
+                </div>
+            </section>
+
+            <!-- Musical Event Panel -->
+            <section class="panel" id="event-panel">
+                <h2>Mapping Output</h2>
+                <div class="features-grid">
+                    <div class="feature">
+                        <label>pitch</label>
+                        <div class="gauge">
+                            <div class="gauge-track">
+                                <div class="gauge-fill event-fill" id="gauge-pitch_hint"></div>
+                            </div>
+                        </div>
+                        <span class="gauge-value" id="val-pitch_hint">0.00</span>
+                    </div>
+                    <div class="feature">
+                        <label>velocity</label>
+                        <div class="gauge">
+                            <div class="gauge-track">
+                                <div class="gauge-fill event-fill" id="gauge-evt-velocity"></div>
+                            </div>
+                        </div>
+                        <span class="gauge-value" id="val-evt-velocity">0.00</span>
+                    </div>
+                    <div class="feature">
+                        <label>duration</label>
+                        <div class="gauge">
+                            <div class="gauge-track">
+                                <div class="gauge-fill event-fill" id="gauge-duration_hint"></div>
+                            </div>
+                        </div>
+                        <span class="gauge-value" id="val-duration_hint">0.00</span>
+                    </div>
+                    <div class="feature">
+                        <label>density</label>
+                        <div class="gauge">
+                            <div class="gauge-track">
+                                <div class="gauge-fill event-fill" id="gauge-density_hint"></div>
+                            </div>
+                        </div>
+                        <span class="gauge-value" id="val-density_hint">0.00</span>
+                    </div>
+                    <div class="feature">
+                        <label>register</label>
+                        <div class="gauge">
+                            <div class="gauge-track">
+                                <div class="gauge-fill event-fill" id="gauge-register_hint"></div>
+                            </div>
+                        </div>
+                        <span class="gauge-value" id="val-register_hint">0.00</span>
+                    </div>
+                    <div class="feature">
+                        <label>urgency</label>
+                        <div class="gauge">
+                            <div class="gauge-track">
+                                <div class="gauge-fill event-fill" id="gauge-urgency"></div>
+                            </div>
+                        </div>
+                        <span class="gauge-value" id="val-urgency">0.00</span>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Controls Sidebar -->
+        <aside id="controls">
+            <h2>Controls</h2>
+
+            <div class="control-group">
+                <button id="btn-start-stop" class="btn btn-primary">Stop</button>
+            </div>
+
+            <div class="control-group">
+                <label for="ctrl-source">Source</label>
+                <select id="ctrl-source">
+                    <option value="random_walk">Random Walk</option>
+                    <option value="stock">Stock Market</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="ctrl-mapper">Mapper</label>
+                <select id="ctrl-mapper">
+                    <option value="rule_based">Rule-Based</option>
+                    <option value="ml">ML</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="ctrl-bpm">BPM: <span id="bpm-display">120</span></label>
+                <input type="range" id="ctrl-bpm" min="60" max="180" value="120" step="1">
+            </div>
+
+            <div class="control-group">
+                <label for="ctrl-key">Key</label>
+                <select id="ctrl-key"></select>
+            </div>
+
+            <div class="control-group">
+                <label for="ctrl-scale">Scale</label>
+                <select id="ctrl-scale"></select>
+            </div>
+        </aside>
+    </main>
+
+    <script src="/static/js/app.js"></script>
+    <script src="/static/js/gauges.js"></script>
+    <script src="/static/js/pianoroll.js"></script>
+    <script src="/static/js/controls.js"></script>
+</body>
+</html>

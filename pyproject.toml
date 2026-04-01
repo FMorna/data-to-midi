@@ -1,0 +1,64 @@
+[project]
+name = "cam-to-midi"
+version = "0.1.0"
+description = "Observe live systems, translate their dynamics into real-time music."
+requires-python = ">=3.9"
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "mido>=1.3",
+    "pyfluidsynth>=1.3",
+    "pyyaml>=6.0",
+    "click>=8.0",
+]
+
+[project.optional-dependencies]
+stock = [
+    "yfinance>=0.2",
+    "finnhub-python>=2.4",
+    "websocket-client>=1.6",
+]
+ml = [
+    "scikit-learn>=1.3",
+    "joblib>=1.3",
+]
+ui = [
+    "rich>=13.0",
+]
+web = [
+    "fastapi>=0.100",
+    "uvicorn[standard]>=0.23",
+    "websockets>=11.0",
+]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+    "pytest-cov>=4.0",
+    "ruff>=0.1",
+]
+all = [
+    "cam-to-midi[stock,ml,ui,web,dev]",
+]
+
+[project.scripts]
+cam-to-midi = "cam_to_midi.__main__:cli"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"cam_to_midi" = ["web/static/**/*"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+markers = [
+    "audio: tests that require audio hardware",
+]

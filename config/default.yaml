@@ -1,0 +1,39 @@
+source:
+  type: random_walk  # random_walk | stock
+  stock:
+    symbols: [AAPL, GOOGL, MSFT]
+    provider: yfinance  # yfinance | finnhub
+    poll_interval_sec: 2
+  random_walk:
+    tick_interval_sec: 0.35
+    volatility: 0.02
+    initial_price: 100.0
+
+perception:
+  window_size: 30
+
+mapping:
+  type: rule_based  # rule_based | ml
+  preset: stock_basic  # references config/mappings/<name>.yaml
+  ml_model_path: models/default.joblib
+
+engine:
+  bpm: 120
+  key: C
+  scale: major
+  time_signature: [4, 4]
+  auto_key_change: true
+  velocity_range: [30, 120]
+  channels:
+    melody: {channel: 0, program: 0}     # Acoustic Grand Piano
+    bass: {channel: 1, program: 32}      # Acoustic Bass
+    pad: {channel: 2, program: 48}       # String Ensemble
+    drums: {channel: 9, program: 0}      # Standard Kit
+
+synth:
+  backend: fluidsynth  # fluidsynth | pygame
+  soundfont: soundfonts/GeneralUser_GS.sf2
+  gain: 0.8
+
+ui:
+  show_dashboard: true

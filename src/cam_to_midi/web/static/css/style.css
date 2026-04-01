@@ -1,0 +1,417 @@
+/* === Variables === */
+:root {
+    --bg-primary: #0a0a0f;
+    --bg-panel: #12121a;
+    --bg-panel-hover: #1a1a25;
+    --border: #2a2a3a;
+    --text-primary: #e0e0e8;
+    --text-secondary: #8888a0;
+    --text-dim: #555568;
+    --accent-blue: #4a9eff;
+    --accent-cyan: #00d4aa;
+    --accent-orange: #ff8844;
+    --accent-purple: #aa66ff;
+    --accent-red: #ff4466;
+    --accent-green: #44ff88;
+    --accent-yellow: #ffcc44;
+    --gauge-bg: #1e1e2e;
+    --gauge-height: 8px;
+    --radius: 6px;
+    --transition-speed: 150ms;
+}
+
+/* === Reset & Base === */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', monospace;
+    font-size: 13px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* === Header === */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-panel);
+}
+
+.header-left {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+}
+
+header h1 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--accent-cyan);
+    letter-spacing: -0.5px;
+}
+
+.subtitle {
+    font-size: 12px;
+    color: var(--text-dim);
+}
+
+.status {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+.status.connected {
+    background: rgba(68, 255, 136, 0.15);
+    color: var(--accent-green);
+}
+
+.status.disconnected {
+    background: rgba(255, 68, 102, 0.15);
+    color: var(--accent-red);
+}
+
+/* === Main Layout === */
+main {
+    display: flex;
+    gap: 0;
+    height: calc(100vh - 57px);
+}
+
+.panel-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    min-width: 0;
+}
+
+/* === Panels === */
+.panel {
+    background: var(--bg-panel);
+    padding: 20px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.panel h2 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+    font-weight: 500;
+}
+
+/* === Feature Gauges === */
+.features-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+    justify-content: center;
+}
+
+.feature {
+    display: grid;
+    grid-template-columns: 80px 1fr 50px;
+    align-items: center;
+    gap: 12px;
+}
+
+.feature label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-align: right;
+}
+
+.gauge-track {
+    height: var(--gauge-height);
+    background: var(--gauge-bg);
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+}
+
+.gauge-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width var(--transition-speed) ease-out,
+                left var(--transition-speed) ease-out;
+    position: absolute;
+    top: 0;
+}
+
+/* Unipolar gauges: left-to-right */
+.gauge:not(.bipolar) .gauge-fill {
+    left: 0;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
+}
+
+/* Bipolar gauges: expand from center */
+.bipolar .gauge-fill {
+    background: var(--accent-cyan);
+}
+
+.bipolar .gauge-fill.negative {
+    background: var(--accent-red);
+}
+
+.gauge-center {
+    position: absolute;
+    left: 50%;
+    top: -1px;
+    bottom: -1px;
+    width: 2px;
+    background: var(--text-dim);
+    transform: translateX(-50%);
+    z-index: 1;
+}
+
+.gauge-value {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+/* Event mapping fills — different color */
+.event-fill {
+    background: linear-gradient(90deg, var(--accent-purple), var(--accent-orange)) !important;
+}
+
+/* === Piano Roll === */
+#pianoroll-panel {
+    position: relative;
+}
+
+#pianoroll-canvas {
+    flex: 1;
+    width: 100%;
+    border-radius: var(--radius);
+    background: var(--gauge-bg);
+}
+
+/* === Music State === */
+.state-grid {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.state-item {
+    text-align: center;
+}
+
+.state-label {
+    display: block;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+}
+
+.state-value {
+    display: block;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--accent-cyan);
+    font-variant-numeric: tabular-nums;
+}
+
+#active-notes {
+    flex: 1;
+    overflow: hidden;
+}
+
+#active-notes h3 {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+#note-display {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-height: 30px;
+}
+
+.note-chip {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+    animation: noteFlash 0.3s ease-out;
+}
+
+.note-chip.ch0 { background: rgba(74, 158, 255, 0.2); color: var(--accent-blue); }
+.note-chip.ch1 { background: rgba(68, 255, 136, 0.2); color: var(--accent-green); }
+.note-chip.ch2 { background: rgba(170, 102, 255, 0.2); color: var(--accent-purple); }
+.note-chip.ch9 { background: rgba(255, 136, 68, 0.2); color: var(--accent-orange); }
+
+@keyframes noteFlash {
+    0% { transform: scale(1.2); opacity: 0.5; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* === Controls Sidebar === */
+#controls {
+    width: 220px;
+    background: var(--bg-panel);
+    border-left: 1px solid var(--border);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    overflow-y: auto;
+}
+
+#controls h2 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    font-weight: 500;
+}
+
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.control-group label {
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+/* Button */
+.btn {
+    padding: 10px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-panel);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-weight: 500;
+}
+
+.btn:hover {
+    background: var(--bg-panel-hover);
+}
+
+.btn-primary {
+    background: rgba(0, 212, 170, 0.15);
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+}
+
+.btn-primary:hover {
+    background: rgba(0, 212, 170, 0.25);
+}
+
+.btn-danger {
+    background: rgba(255, 68, 102, 0.15);
+    border-color: var(--accent-red);
+    color: var(--accent-red);
+}
+
+.btn-danger:hover {
+    background: rgba(255, 68, 102, 0.25);
+}
+
+/* Select & Range */
+select, input[type="range"] {
+    width: 100%;
+}
+
+select {
+    padding: 8px 10px;
+    background: var(--gauge-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 5l3 3 3-3' fill='none' stroke='%238888a0' stroke-width='1.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    padding-right: 28px;
+}
+
+select:focus {
+    outline: none;
+    border-color: var(--accent-cyan);
+}
+
+input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    background: var(--gauge-bg);
+    border-radius: 3px;
+    outline: none;
+    cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--accent-cyan);
+    cursor: pointer;
+    border: 2px solid var(--bg-panel);
+}
+
+/* === Responsive === */
+@media (max-width: 900px) {
+    main {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .panel-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+    }
+
+    #controls {
+        width: 100%;
+        border-left: none;
+        border-top: 1px solid var(--border);
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    #controls h2 {
+        width: 100%;
+    }
+}

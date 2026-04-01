@@ -1,0 +1,41 @@
+name: Stock Basic
+description: Clean mapping from market dynamics to music
+
+pitch_hint:
+  source: direction
+  curve: linear
+  input_range: [-1.0, 1.0]
+  output_range: [0.2, 0.8]
+
+velocity:
+  source: intensity
+  curve: exponential
+  exponent: 1.5
+  input_range: [0.0, 1.0]
+  output_range: [0.2, 0.9]
+
+duration_hint:
+  source: volatility
+  curve: linear
+  invert: true
+  input_range: [0.0, 1.0]
+  output_range: [0.3, 0.9]
+
+density_hint:
+  source: density
+  curve: linear
+  input_range: [0.0, 1.0]
+  output_range: [0.0, 1.0]
+
+register_hint:
+  source: intensity
+  curve: linear
+  input_range: [0.0, 1.0]
+  output_range: [0.3, 0.7]
+
+urgency:
+  source: volatility
+  curve: exponential
+  exponent: 2.0
+  input_range: [0.0, 1.0]
+  output_range: [0.0, 0.8]
