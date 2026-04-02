@@ -47,7 +47,7 @@ class ConsoleDashboard:
         # Print update
         if self._event_count % 4 == 0:  # Throttle output
             self._console.clear()
-            self._console.print(f"[bold cyan]cam_to_midi[/] | tick #{self._event_count}")
+            self._console.print(f"[bold cyan]data_to_midi[/] | tick #{self._event_count}")
             self._console.print()
             self._console.print(bars)
             self._console.print()

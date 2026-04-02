@@ -4,7 +4,7 @@ import asyncio
 
 import pytest
 
-from cam_to_midi.config import (
+from data_to_midi.config import (
     AppConfig,
     EngineConfig,
     MappingConfig,
@@ -12,12 +12,12 @@ from cam_to_midi.config import (
     RandomWalkConfig,
     SourceConfig,
 )
-from cam_to_midi.engine.engine import MusicEngine
-from cam_to_midi.engine.theory import get_scale_notes
-from cam_to_midi.mapping.registry import MapperRegistry
-from cam_to_midi.perception.windowed import WindowedPerceptor
-from cam_to_midi.pipeline import Pipeline
-from cam_to_midi.sources.random_walk import RandomWalkSource
+from data_to_midi.engine.engine import MusicEngine
+from data_to_midi.engine.theory import get_scale_notes
+from data_to_midi.mapping.registry import MapperRegistry
+from data_to_midi.perception.windowed import WindowedPerceptor
+from data_to_midi.pipeline import Pipeline
+from data_to_midi.sources.random_walk import RandomWalkSource
 
 
 class CollectorSynth:

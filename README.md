@@ -1,4 +1,4 @@
-# cam_to_midi
+# data_to_midi
 
 Turn live data streams into real-time MIDI music. Stock market prices drive ambient, harmonious compositions where each company becomes a musical voice.
 
@@ -41,7 +41,7 @@ brew install fluidsynth
 # Download a GM SoundFont into soundfonts/ (e.g., GeneralUser_GS.sf2)
 
 # Launch
-python -m cam_to_midi web
+python -m data_to_midi web
 # Open http://127.0.0.1:8080
 ```
 

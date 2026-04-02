@@ -29,7 +29,7 @@ class App:
 
     async def run(self) -> None:
         """Start all components and run the pipeline."""
-        print(f"Starting cam_to_midi...")
+        print(f"Starting data_to_midi...")
         print(f"  Source: {self.config.source.type}")
         print(f"  Mapper: {self.config.mapping.type} ({self.config.mapping.preset})")
         print(f"  Key: {self.config.engine.key} {self.config.engine.scale}")
@@ -89,7 +89,7 @@ class App:
             self._dashboard = ConsoleDashboard()
             self.pipeline.set_event_callback(self._dashboard.update)
         except ImportError:
-            print("Install 'rich' for live dashboard: pip install cam-to-midi[ui]")
+            print("Install 'rich' for live dashboard: pip install data-to-midi[ui]")
 
 
 class _NullSynth:

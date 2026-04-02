@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-"""CLI entry point: python -m cam_to_midi"""
+"""CLI entry point: python -m data_to_midi"""
 
 import asyncio
 
@@ -20,7 +20,7 @@ from .config import AppConfig, load_config
 @click.option("--scale", default=None, help="Scale name (e.g. major, minor, pentatonic_minor)")
 @click.pass_context
 def cli(ctx, config_path, source, mapper, preset, bpm, key, scale):
-    """cam_to_midi: Turn live systems into real-time music."""
+    """data_to_midi: Turn live systems into real-time music."""
     if ctx.invoked_subcommand is not None:
         return
 

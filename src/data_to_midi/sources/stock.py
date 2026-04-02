@@ -44,7 +44,7 @@ class StockSource(BaseSource):
         try:
             import yfinance as yf
         except ImportError:
-            raise ImportError("Install yfinance: pip install cam-to-midi[stock]")
+            raise ImportError("Install yfinance: pip install data-to-midi[stock]")
 
         while self._running:
             for symbol in self.symbols:
@@ -102,7 +102,7 @@ class StockSource(BaseSource):
         try:
             import finnhub
         except ImportError:
-            raise ImportError("Install finnhub: pip install cam-to-midi[stock]")
+            raise ImportError("Install finnhub: pip install data-to-midi[stock]")
 
         api_key = os.environ.get("FINNHUB_API_KEY", "")
         if not api_key:

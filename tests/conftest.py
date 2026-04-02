@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
-from cam_to_midi.mapping.musical_params import MusicalEvent
-from cam_to_midi.perception.features import FeatureVector
-from cam_to_midi.sources.base import SourceSample
+from data_to_midi.mapping.musical_params import MusicalEvent
+from data_to_midi.perception.features import FeatureVector
+from data_to_midi.sources.base import SourceSample
 
 
 @pytest.fixture

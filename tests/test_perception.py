@@ -1,6 +1,6 @@
 import numpy as np
 
-from cam_to_midi.perception.extractors import (
+from data_to_midi.perception.extractors import (
     extract_change_rate,
     extract_density,
     extract_direction,
@@ -8,8 +8,8 @@ from cam_to_midi.perception.extractors import (
     extract_periodicity,
     extract_volatility,
 )
-from cam_to_midi.perception.windowed import WindowedPerceptor
-from cam_to_midi.sources.base import SourceSample
+from data_to_midi.perception.windowed import WindowedPerceptor
+from data_to_midi.sources.base import SourceSample
 
 
 class TestExtractors:
@@ -59,7 +59,7 @@ class TestExtractors:
 
 class TestWindowedPerceptor:
     def test_returns_none_until_window_full(self):
-        from cam_to_midi.config import PerceptionConfig
+        from data_to_midi.config import PerceptionConfig
 
         config = PerceptionConfig(window_size=5)
         perceptor = WindowedPerceptor(config)
@@ -76,7 +76,7 @@ class TestWindowedPerceptor:
         assert result is not None
 
     def test_feature_vector_fields(self):
-        from cam_to_midi.config import PerceptionConfig
+        from data_to_midi.config import PerceptionConfig
 
         config = PerceptionConfig(window_size=5)
         perceptor = WindowedPerceptor(config)
@@ -92,7 +92,7 @@ class TestWindowedPerceptor:
         assert hasattr(result, "volatility")
 
     def test_reset(self):
-        from cam_to_midi.config import PerceptionConfig
+        from data_to_midi.config import PerceptionConfig
 
         config = PerceptionConfig(window_size=5)
         perceptor = WindowedPerceptor(config)

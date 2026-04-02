@@ -1,5 +1,5 @@
 [project]
-name = "cam-to-midi"
+name = "data-to-midi"
 version = "0.1.0"
 description = "Observe live systems, translate their dynamics into real-time music."
 requires-python = ">=3.9"
@@ -37,11 +37,11 @@ dev = [
     "ruff>=0.1",
 ]
 all = [
-    "cam-to-midi[stock,ml,ui,web,dev]",
+    "data-to-midi[stock,ml,ui,web,dev]",
 ]
 
 [project.scripts]
-cam-to-midi = "cam_to_midi.__main__:cli"
+data-to-midi = "data_to_midi.__main__:cli"
 
 [build-system]
 requires = ["setuptools>=68"]
@@ -51,7 +51,7 @@ build-backend = "setuptools.build_meta"
 where = ["src"]
 
 [tool.setuptools.package-data]
-"cam_to_midi" = ["web/static/**/*"]
+"data_to_midi" = ["web/static/**/*"]
 
 [tool.ruff]
 line-length = 100

@@ -2,8 +2,8 @@ import asyncio
 
 import pytest
 
-from cam_to_midi.config import RandomWalkConfig
-from cam_to_midi.sources.random_walk import RandomWalkSource
+from data_to_midi.config import RandomWalkConfig
+from data_to_midi.sources.random_walk import RandomWalkSource
 
 
 class TestRandomWalkSource:
@@ -55,16 +55,16 @@ class TestRandomWalkSource:
 
 class TestSourceRegistry:
     def test_create_random_walk(self):
-        from cam_to_midi.config import SourceConfig
-        from cam_to_midi.sources.registry import SourceRegistry
+        from data_to_midi.config import SourceConfig
+        from data_to_midi.sources.registry import SourceRegistry
 
         config = SourceConfig(type="random_walk")
         source = SourceRegistry.create(config)
         assert isinstance(source, RandomWalkSource)
 
     def test_unknown_source_raises(self):
-        from cam_to_midi.config import SourceConfig
-        from cam_to_midi.sources.registry import SourceRegistry
+        from data_to_midi.config import SourceConfig
+        from data_to_midi.sources.registry import SourceRegistry
 
         config = SourceConfig(type="nonexistent")
         with pytest.raises(ValueError):

@@ -1,13 +1,13 @@
 import mido
 
-from cam_to_midi.engine.engine import MusicEngine
-from cam_to_midi.engine.theory import get_scale_notes
-from cam_to_midi.mapping.musical_params import MusicalEvent
+from data_to_midi.engine.engine import MusicEngine
+from data_to_midi.engine.theory import get_scale_notes
+from data_to_midi.mapping.musical_params import MusicalEvent
 
 
 class TestMusicEngine:
     def _make_engine(self, key="C", scale="major"):
-        from cam_to_midi.config import EngineConfig
+        from data_to_midi.config import EngineConfig
         config = EngineConfig(key=key, scale=scale)
         return MusicEngine(config)
 
@@ -85,7 +85,7 @@ class TestMusicEngine:
 
 class TestSequencer:
     def test_beat_advances(self):
-        from cam_to_midi.engine.sequencer import Sequencer
+        from data_to_midi.engine.sequencer import Sequencer
         seq = Sequencer(bpm=120)
         t1 = seq.tick()
         assert t1["beat"] == 0
@@ -93,14 +93,14 @@ class TestSequencer:
         assert t2["beat"] == 1
 
     def test_bar_advances(self):
-        from cam_to_midi.engine.sequencer import Sequencer
+        from data_to_midi.engine.sequencer import Sequencer
         seq = Sequencer(bpm=120, beats_per_bar=4)
         for _ in range(4):
             seq.tick()
         assert seq.current_bar == 1
 
     def test_chord_changes_per_bar(self):
-        from cam_to_midi.engine.sequencer import Sequencer
+        from data_to_midi.engine.sequencer import Sequencer
         seq = Sequencer(bpm=120)
         chord1 = seq.current_chord
         for _ in range(4):

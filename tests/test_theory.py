@@ -1,4 +1,4 @@
-from cam_to_midi.engine.theory import (
+from data_to_midi.engine.theory import (
     build_chord,
     get_scale_notes,
     note_name_to_midi,

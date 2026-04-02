@@ -1,9 +1,9 @@
 import mido
 
-from cam_to_midi.config import EngineConfig, ChannelConfig
-from cam_to_midi.engine.ambient_engine import AmbientStockEngine
-from cam_to_midi.engine.theory import get_scale_notes
-from cam_to_midi.mapping.musical_params import MusicalEvent
+from data_to_midi.config import EngineConfig, ChannelConfig
+from data_to_midi.engine.ambient_engine import AmbientStockEngine
+from data_to_midi.engine.theory import get_scale_notes
+from data_to_midi.mapping.musical_params import MusicalEvent
 
 
 def _make_engine(symbols=None, key="C", scale="dorian"):
@@ -101,7 +101,7 @@ class TestAmbientStockEngine:
 
 class TestChordStockEngine:
     def _make_chord_engine(self, symbols=None, key="C", scale="dorian"):
-        from cam_to_midi.engine.ambient_engine import ChordStockEngine
+        from data_to_midi.engine.ambient_engine import ChordStockEngine
         symbols = symbols or ["AAPL", "GOOGL", "MSFT"]
         config = EngineConfig(
             bpm=75, key=key, scale=scale, mode="chord_stock",
@@ -160,9 +160,9 @@ class TestChordStockEngine:
 
 class TestMultiSymbolPerceptor:
     def test_routes_by_symbol(self):
-        from cam_to_midi.config import PerceptionConfig
-        from cam_to_midi.perception.multi_symbol import MultiSymbolPerceptor
-        from cam_to_midi.sources.base import SourceSample
+        from data_to_midi.config import PerceptionConfig
+        from data_to_midi.perception.multi_symbol import MultiSymbolPerceptor
+        from data_to_midi.sources.base import SourceSample
 
         perc = MultiSymbolPerceptor(PerceptionConfig(window_size=5), ["AAPL", "GOOGL"])
 
@@ -183,9 +183,9 @@ class TestMultiSymbolPerceptor:
         assert result2 is None
 
     def test_price_history_tracked(self):
-        from cam_to_midi.config import PerceptionConfig
-        from cam_to_midi.perception.multi_symbol import MultiSymbolPerceptor
-        from cam_to_midi.sources.base import SourceSample
+        from data_to_midi.config import PerceptionConfig
+        from data_to_midi.perception.multi_symbol import MultiSymbolPerceptor
+        from data_to_midi.sources.base import SourceSample
 
         perc = MultiSymbolPerceptor(PerceptionConfig(window_size=5), ["AAPL"])
         perc.update(SourceSample(
@@ -198,9 +198,9 @@ class TestMultiSymbolPerceptor:
         assert latest["AAPL"] == (1.0, 150.0)
 
     def test_unknown_symbol_ignored(self):
-        from cam_to_midi.config import PerceptionConfig
-        from cam_to_midi.perception.multi_symbol import MultiSymbolPerceptor
-        from cam_to_midi.sources.base import SourceSample
+        from data_to_midi.config import PerceptionConfig
+        from data_to_midi.perception.multi_symbol import MultiSymbolPerceptor
+        from data_to_midi.sources.base import SourceSample
 
         perc = MultiSymbolPerceptor(PerceptionConfig(window_size=5), ["AAPL"])
         result = perc.update(SourceSample(

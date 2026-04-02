@@ -1,4 +1,4 @@
-from cam_to_midi.config import AppConfig, load_config, load_mapping_preset
+from data_to_midi.config import AppConfig, load_config, load_mapping_preset
 
 
 class TestLoadConfig:

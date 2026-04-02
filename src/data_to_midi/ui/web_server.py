@@ -490,7 +490,7 @@ def run_web(config: AppConfig, host: str = "127.0.0.1", port: int = 8080) -> Non
         await bridge._stop_pipeline()
         bridge.synth.stop()
 
-    app = FastAPI(title="cam_to_midi", lifespan=lifespan)
+    app = FastAPI(title="data_to_midi", lifespan=lifespan)
 
     @app.get("/")
     async def index():
@@ -516,5 +516,5 @@ def run_web(config: AppConfig, host: str = "127.0.0.1", port: int = 8080) -> Non
 
     app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
-    print(f"\n  cam_to_midi web UI: http://{host}:{port}\n")
+    print(f"\n  data_to_midi web UI: http://{host}:{port}\n")
     uvicorn.run(app, host=host, port=port, log_level="info")

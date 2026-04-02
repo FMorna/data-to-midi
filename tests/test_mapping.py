@@ -1,6 +1,6 @@
-from cam_to_midi.mapping.ml_mapper import MLMapper
-from cam_to_midi.mapping.rule_based import RuleBasedMapper, _apply_curve
-from cam_to_midi.perception.features import FeatureVector
+from data_to_midi.mapping.ml_mapper import MLMapper
+from data_to_midi.mapping.rule_based import RuleBasedMapper, _apply_curve
+from data_to_midi.perception.features import FeatureVector
 
 
 class TestApplyCurve:
