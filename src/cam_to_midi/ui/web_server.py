@@ -6,12 +6,13 @@ import time
 from pathlib import Path
 from typing import Any
 
-from ..config import AppConfig, load_config
+from ..config import AppConfig, EngineConfig, ChannelConfig, load_config, load_mapping_preset
 from ..engine.engine import MusicEngine
 from ..engine.theory import NOTE_MAP, SCALES
 from ..mapping.musical_params import MusicalEvent
 from ..mapping.registry import MapperRegistry
 from ..perception.features import FeatureVector
+from ..perception.multi_symbol import MultiSymbolPerceptor
 from ..perception.windowed import WindowedPerceptor
 from ..pipeline import Pipeline
 from ..sources.registry import SourceRegistry
@@ -23,22 +24,59 @@ def _midi_to_name(note: int) -> str:
     return f"{NOTE_NAMES[note % 12]}{note // 12 - 1}"
 
 
+def _make_chord_engine(config: AppConfig, symbols: list):
+    """Create a ChordStockEngine configured for the given symbols."""
+    from ..engine.ambient_engine import ChordStockEngine
+    engine_cfg = EngineConfig(
+        bpm=75,
+        key=config.engine.key,
+        scale="dorian" if config.engine.scale == "major" else config.engine.scale,
+        time_signature=config.engine.time_signature,
+        auto_key_change=config.engine.auto_key_change,
+        mode="chord_stock",
+        velocity_range=[25, 65],
+        channels={
+            "chord": ChannelConfig(0, 89),       # Warm Pad — unified chord
+            "bass": ChannelConfig(1, 39),         # Synth Bass — root note
+            "atmosphere": ChannelConfig(2, 92),   # Spacey Pad — wash
+        },
+    )
+    return ChordStockEngine(engine_cfg, symbols)
+
+
+def _make_stock_engine(config: AppConfig, symbols: list):
+    """Create an AmbientStockEngine configured for the given symbols."""
+    from ..engine.ambient_engine import AmbientStockEngine
+    engine_cfg = EngineConfig(
+        bpm=75,
+        key=config.engine.key,
+        scale="dorian" if config.engine.scale == "major" else config.engine.scale,
+        time_signature=config.engine.time_signature,
+        auto_key_change=config.engine.auto_key_change,
+        mode="ambient_stock",
+        velocity_range=[25, 70],
+        channels={
+            "pad": ChannelConfig(0, 89),         # Warm Pad — sustained, lush
+            "strings": ChannelConfig(1, 51),      # Synth Strings — wide, evolving
+            "bass": ChannelConfig(2, 39),          # Synth Bass — deep foundation
+            "atmosphere": ChannelConfig(3, 92),    # Spacey Pad — background wash
+        },
+    )
+    return AmbientStockEngine(engine_cfg, symbols)
+
+
 class WebBridge:
     """Bridges the pipeline event callback to WebSocket clients."""
 
     def __init__(self, config: AppConfig):
         self.config = config
-        self._queue = None  # Created lazily on the running event loop
+        self._queue = None
         self._clients: set = set()
         self._running = False
+        self._muted = False
+        self._pipeline_task = None
 
-        # Pipeline components (mutable for hot-swapping)
-        self.source = SourceRegistry.create(config.source)
-        self.perceptor = WindowedPerceptor(config.perception)
-        self.mapper = MapperRegistry.create(config.mapping)
-        self.engine = MusicEngine(config.engine)
-
-        # Try real synth for audio output, fall back to silent
+        # Synth — shared across pipeline restarts
         try:
             from ..synth.registry import SynthRegistry
             self.synth = SynthRegistry.create(config.synth)
@@ -48,12 +86,19 @@ class WebBridge:
             print(f"  Synth unavailable ({e}), running silent.")
             self.synth = _NullSynth()
 
-        self.pipeline = Pipeline(
-            self.source, self.perceptor, self.mapper, self.engine, self.synth
-        )
-        self.pipeline.set_event_callback(self.on_pipeline_event)
+        # Pipeline components — will be built in _start_pipeline
+        self.source = None
+        self.perceptor = None
+        self.mapper = None
+        self.engine = None
+        self.pipeline = None
+        self._sound_mode = "ambient"  # "ambient" or "standard" (stock mode only)
 
-        self._pipeline_task = None
+    def _is_stock_mode(self) -> bool:
+        return self.config.source.type == "stock"
+
+    def _get_symbols(self) -> list:
+        return self.config.source.stock.symbols[:3]
 
     def on_pipeline_event(
         self, features: FeatureVector, event: MusicalEvent, messages: list
@@ -90,7 +135,24 @@ class WebBridge:
             },
             "notes": notes,
             "state": self._get_state(),
+            "active_symbol": features.symbol or "",
         }
+
+        # Add price data if in stock mode
+        if isinstance(self.perceptor, MultiSymbolPerceptor):
+            latest = self.perceptor.get_latest_prices()
+            payload["prices"] = {
+                sym: {"ts": round(ts, 3), "price": round(price, 2)}
+                for sym, (ts, price) in latest.items()
+            }
+            # Detect if all symbols are reporting stale (unchanged) prices
+            if self.source and hasattr(self.source, '_stale_counts'):
+                all_stale = all(
+                    self.source._stale_counts.get(s, 0) > 5
+                    for s in self.perceptor.symbols
+                )
+                payload["all_stale"] = all_stale
+
         if self._queue is None:
             return
         try:
@@ -105,7 +167,30 @@ class WebBridge:
             except asyncio.QueueFull:
                 pass
 
+    def _get_instruments(self) -> dict:
+        """Return current instrument programs as {ch0: program, ch1: program, ...}."""
+        if self.engine is None:
+            return {}
+        result = {}
+        for name, cfg in self.engine.channels.items():
+            result[f"ch{cfg.channel}"] = cfg.program
+        return result
+
     def _get_state(self) -> dict:
+        if self.engine is None:
+            return {
+                "bpm": self.config.engine.bpm,
+                "key": self.config.engine.key,
+                "scale": self.config.engine.scale,
+                "bar": 0, "beat": 0,
+                "source": self.config.source.type,
+                "mapper": self.config.mapping.type,
+                "running": self._running,
+                "symbols": self._get_symbols() if self._is_stock_mode() else [],
+                "sound_mode": self._sound_mode,
+                "muted": self._muted,
+                "instruments": self._get_instruments(),
+            }
         seq = self.engine.sequencer
         return {
             "bpm": round(seq.bpm, 1),
@@ -116,10 +201,13 @@ class WebBridge:
             "source": self.config.source.type,
             "mapper": self.config.mapping.type,
             "running": self._running,
+            "symbols": self._get_symbols() if self._is_stock_mode() else [],
+            "sound_mode": self._sound_mode,
+            "instruments": self._get_instruments(),
         }
 
     def get_init_message(self) -> dict:
-        return {
+        msg = {
             "type": "init",
             "state": self._get_state(),
             "options": {
@@ -129,14 +217,20 @@ class WebBridge:
                 "mappers": ["rule_based", "ml"],
             },
         }
+        # Send full price history on connect so chart populates immediately
+        if isinstance(self.perceptor, MultiSymbolPerceptor):
+            history = self.perceptor.get_price_history()
+            msg["price_history"] = {
+                sym: [{"ts": round(ts, 3), "price": round(p, 2)} for ts, p in pts]
+                for sym, pts in history.items()
+            }
+        return msg
 
     def ensure_queue(self) -> None:
-        """Create the queue on the running event loop."""
         if self._queue is None:
             self._queue = asyncio.Queue(maxsize=100)
 
     async def broadcast_loop(self) -> None:
-        """Continuously read from queue and broadcast to all clients."""
         self.ensure_queue()
         while True:
             payload = await self._queue.get()
@@ -155,25 +249,82 @@ class WebBridge:
 
         if cmd == "set_bpm":
             bpm = int(value)
-            self.engine.config.bpm = bpm
-            self.engine.set_tempo(bpm)
+            if self.engine:
+                self.engine.config.bpm = bpm
+                self.engine.set_tempo(bpm)
 
         elif cmd == "set_key":
-            self.engine.set_key(str(value), self.engine.scale)
-            self.engine.root = str(value)
+            if self.engine:
+                self.engine.set_key(str(value), self.engine.scale)
+                self.engine.root = str(value)
 
         elif cmd == "set_scale":
-            self.engine.set_key(self.engine.root, str(value))
-            self.engine.scale = str(value)
+            if self.engine:
+                self.engine.set_key(self.engine.root, str(value))
+                self.engine.scale = str(value)
+
+        elif cmd == "set_instrument":
+            # value is {channel: int, program: int}
+            ch = int(value.get("channel", 0))
+            prog = int(value.get("program", 0))
+            # Send program_change to synth immediately
+            from ..engine.midi_out import program_change
+            self.synth.send(program_change(ch, prog))
+            # Update the engine's channel config so it persists
+            if self.engine:
+                for name, cfg in self.engine.channels.items():
+                    if cfg.channel == ch:
+                        cfg.program = prog
+                        break
+            await self._send_state_update()
 
         elif cmd == "set_mapper":
             self.config.mapping.type = str(value)
             new_mapper = MapperRegistry.create(self.config.mapping)
             self.mapper = new_mapper
-            self.pipeline.mapper = new_mapper
+            if self.pipeline:
+                self.pipeline.mapper = new_mapper
 
         elif cmd == "set_source":
             await self._swap_source(str(value))
+            await self._send_state_update()
+
+        elif cmd == "set_symbols":
+            # value is a list of symbol strings
+            symbols = [s.upper().strip() for s in value if s.strip()][:3]
+            if symbols:
+                self.config.source.stock.symbols = symbols
+                if self._is_stock_mode():
+                    await self._swap_source("stock")
+                await self._send_state_update()
+
+        elif cmd == "set_sound_mode":
+            mode = str(value)
+            if mode in ("ambient", "standard", "chord") and mode != self._sound_mode:
+                self._sound_mode = mode
+                if self._is_stock_mode() and self._running:
+                    await self._hot_swap_engine()
+                await self._send_state_update()
+
+        elif cmd == "mute":
+            self._muted = True
+            if self.pipeline:
+                self.pipeline.muted = True
+            # Silence all channels immediately
+            from ..engine.midi_out import all_notes_off
+            for ch in range(16):
+                self.synth.send(all_notes_off(ch))
+            await self._send_state_update()
+
+        elif cmd == "unmute":
+            self._muted = False
+            if self.pipeline:
+                self.pipeline.muted = False
+            # Re-send program changes so instruments are ready
+            if self.engine:
+                from ..engine.midi_out import setup_channels
+                for msg in setup_channels(self.engine.channels):
+                    self.synth.send(msg)
             await self._send_state_update()
 
         elif cmd == "stop":
@@ -185,7 +336,6 @@ class WebBridge:
             await self._send_state_update()
 
     async def _send_state_update(self) -> None:
-        """Push a state update to all clients immediately (for stop/start feedback)."""
         payload = json.dumps({"type": "state", "state": self._get_state()})
         disconnected = set()
         for ws in self._clients:
@@ -200,8 +350,39 @@ class WebBridge:
             return
         self.ensure_queue()
         self._running = True
+
+        # Create source
         self.source = SourceRegistry.create(self.config.source)
-        self.perceptor = WindowedPerceptor(self.config.perception)
+
+        # Create perceptor + engine based on mode
+        if self._is_stock_mode():
+            symbols = self._get_symbols()
+            # Use smaller window for stock — each symbol only gets 1 sample per poll
+            from ..config import PerceptionConfig
+            stock_perception = PerceptionConfig(window_size=10)
+            self.perceptor = MultiSymbolPerceptor(stock_perception, symbols)
+
+            if self._sound_mode == "ambient":
+                self.engine = _make_stock_engine(self.config, symbols)
+                self.config.mapping.preset = "stock_ambient"
+            elif self._sound_mode == "chord":
+                self.engine = _make_chord_engine(self.config, symbols)
+                self.config.mapping.preset = "stock_ambient"
+            else:
+                # Standard mode: use the regular MusicEngine with stock data
+                self.engine = MusicEngine(self.config.engine)
+                self.config.mapping.preset = "stock_basic"
+
+            self.mapper = MapperRegistry.create(self.config.mapping)
+        else:
+            self.perceptor = WindowedPerceptor(self.config.perception)
+            # Reuse engine if it's already a standard MusicEngine, else create fresh
+            if not isinstance(self.engine, MusicEngine):
+                self.engine = MusicEngine(self.config.engine)
+            # Always ensure mapper matches config preset
+            self.config.mapping.preset = self.config.mapping.preset or "stock_basic"
+            self.mapper = MapperRegistry.create(self.config.mapping)
+
         self.pipeline = Pipeline(
             self.source, self.perceptor, self.mapper, self.engine, self.synth
         )
@@ -213,7 +394,8 @@ class WebBridge:
         if not self._running:
             return
         self._running = False
-        await self.source.stop()
+        if self.source:
+            await self.source.stop()
         if self._pipeline_task:
             self._pipeline_task.cancel()
             try:
@@ -221,11 +403,11 @@ class WebBridge:
             except asyncio.CancelledError:
                 pass
             self._pipeline_task = None
-        # Silence all channels — send all-notes-off CC 123
+        # Silence all channels
         from ..engine.midi_out import all_notes_off
         for ch in range(16):
             self.synth.send(all_notes_off(ch))
-        # Drain the queue so stale ticks don't replay on restart
+        # Drain queue
         if self._queue:
             while not self._queue.empty():
                 try:
@@ -233,10 +415,44 @@ class WebBridge:
                 except asyncio.QueueEmpty:
                     break
 
+    async def _hot_swap_engine(self) -> None:
+        """Swap engine and mapper in-place without restarting the source/perceptor."""
+        from ..engine.midi_out import all_notes_off, setup_channels
+
+        # Silence current notes
+        for ch in range(16):
+            self.synth.send(all_notes_off(ch))
+
+        # Build new engine + mapper based on current sound mode
+        symbols = self._get_symbols()
+        if self._sound_mode == "ambient":
+            self.engine = _make_stock_engine(self.config, symbols)
+            self.config.mapping.preset = "stock_ambient"
+        elif self._sound_mode == "chord":
+            self.engine = _make_chord_engine(self.config, symbols)
+            self.config.mapping.preset = "stock_ambient"
+        else:
+            self.engine = MusicEngine(self.config.engine)
+            self.config.mapping.preset = "stock_basic"
+        self.mapper = MapperRegistry.create(self.config.mapping)
+
+        # Send program_change messages to set up new instruments
+        for msg in setup_channels(self.engine.channels):
+            self.synth.send(msg)
+
+        # Update the live pipeline references
+        if self.pipeline:
+            self.pipeline.engine = self.engine
+            self.pipeline.mapper = self.mapper
+
     async def _swap_source(self, source_type: str) -> None:
         was_running = self._running
         await self._stop_pipeline()
         self.config.source.type = source_type
+        # Reset mapper to default preset when switching away from stock
+        if source_type != "stock":
+            self.config.mapping.preset = "stock_basic"
+            self.mapper = MapperRegistry.create(self.config.mapping)
         if was_running:
             await self._start_pipeline()
 

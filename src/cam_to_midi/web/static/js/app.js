@@ -47,14 +47,20 @@ const App = (() => {
             Controls.init(data.options, data.state);
             Gauges.reset();
             PianoRoll.reset();
+            setStockMode(state.source === 'stock');
+
+            // Init stock chart with history if available
+            if (state.source === 'stock' && data.price_history) {
+                StockChart.init(state.symbols || [], data.price_history);
+            }
         } else if (data.type === 'tick') {
             lastTick = data;
             state = { ...state, ...data.state };
         } else if (data.type === 'state') {
-            // Immediate state update (from stop/start commands)
             state = { ...state, ...data.state };
             Controls.syncState(data.state);
             updateState(data.state, []);
+            setStockMode(state.source === 'stock');
         }
     }
 
@@ -64,15 +70,55 @@ const App = (() => {
         }
     }
 
-    // Render loop — throttled to ~20fps via requestAnimationFrame
+    function setStockMode(isStock) {
+        const body = document.body;
+        const chartPanel = document.getElementById('stockchart-panel');
+        const eventPanel = document.getElementById('event-panel');
+        const symbolControls = document.getElementById('symbol-controls');
+        const soundModeControls = document.getElementById('sound-mode-controls');
+        const instrumentControls = document.getElementById('instrument-controls');
+
+        if (isStock) {
+            body.classList.add('stock-mode');
+            chartPanel.style.display = '';
+            eventPanel.style.display = 'none';
+            symbolControls.style.display = '';
+            soundModeControls.style.display = '';
+            instrumentControls.style.display = '';
+            Instruments.build(state.sound_mode || 'ambient');
+            if (state.instruments) Instruments.syncFromState(state.instruments);
+            if (!StockChart._initialized) {
+                StockChart.init(state.symbols || [], null);
+                StockChart._initialized = true;
+            }
+        } else {
+            body.classList.remove('stock-mode');
+            chartPanel.style.display = 'none';
+            eventPanel.style.display = '';
+            symbolControls.style.display = 'none';
+            soundModeControls.style.display = 'none';
+            instrumentControls.style.display = '';
+            Instruments.build('standard');
+            if (state.instruments) Instruments.syncFromState(state.instruments);
+        }
+    }
+
+    // Render loop
     function renderLoop() {
         if (lastTick) {
             Gauges.update(lastTick.features, lastTick.musical_event);
             PianoRoll.addNotes(lastTick.notes);
             updateState(lastTick.state, lastTick.notes);
+
+            // Route stock price data to chart
+            if (lastTick.prices) {
+                StockChart.updatePrices(lastTick.prices, lastTick.active_symbol, lastTick.all_stale);
+            }
+
             lastTick = null;
         }
         PianoRoll.draw();
+        StockChart.draw();
         requestAnimationFrame(renderLoop);
     }
 
@@ -82,9 +128,8 @@ const App = (() => {
         document.getElementById('state-key').textContent = s.key;
         document.getElementById('state-scale').textContent = s.scale;
         document.getElementById('state-bar').textContent = s.bar;
-        document.getElementById('state-beat').textContent = s.beat + 1; // 1-indexed for display
+        document.getElementById('state-beat').textContent = s.beat + 1;
 
-        // Active notes
         const display = document.getElementById('note-display');
         display.innerHTML = '';
         if (notes && notes.length > 0) {
@@ -97,7 +142,6 @@ const App = (() => {
         }
     }
 
-    // Boot
     function init() {
         connect();
         requestAnimationFrame(renderLoop);
@@ -106,5 +150,4 @@ const App = (() => {
     return { init, sendCommand, getState: () => state };
 })();
 
-// Start when DOM is ready
 document.addEventListener('DOMContentLoaded', App.init);

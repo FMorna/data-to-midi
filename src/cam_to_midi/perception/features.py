@@ -17,3 +17,4 @@ class FeatureVector:
     direction: float  # Trend direction [-1 (down), 1 (up)]
     volatility: float  # Variance/turbulence [0, 1]
     density: float  # Event clustering/choppiness [0, 1]
+    symbol: str = ""  # Source symbol (e.g. "AAPL") — empty for non-stock sources

@@ -1,0 +1,39 @@
+name: Stock Ambient
+description: Ambient/drone mapping for stock market data — soft, sustained, spacious
+
+pitch_hint:
+  source: direction
+  curve: linear
+  input_range: [-1.0, 1.0]
+  output_range: [0.3, 0.7]
+
+velocity:
+  source: intensity
+  curve: linear
+  input_range: [0.0, 1.0]
+  output_range: [0.15, 0.6]
+
+duration_hint:
+  source: volatility
+  curve: linear
+  invert: true
+  input_range: [0.0, 1.0]
+  output_range: [0.7, 1.0]
+
+density_hint:
+  source: density
+  curve: linear
+  input_range: [0.0, 1.0]
+  output_range: [0.0, 0.3]
+
+register_hint:
+  source: intensity
+  curve: linear
+  input_range: [0.0, 1.0]
+  output_range: [0.3, 0.7]
+
+urgency:
+  source: volatility
+  curve: linear
+  input_range: [0.0, 1.0]
+  output_range: [0.0, 0.3]

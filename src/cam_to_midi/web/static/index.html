@@ -82,6 +82,12 @@
                 </div>
             </section>
 
+            <!-- Stock Price Chart (shown in stock mode) -->
+            <section class="panel" id="stockchart-panel" style="display: none;">
+                <h2>Stock Prices</h2>
+                <canvas id="stockchart-canvas"></canvas>
+            </section>
+
             <!-- Piano Roll Panel -->
             <section class="panel" id="pianoroll-panel">
                 <h2>Notes</h2>
@@ -119,62 +125,38 @@
                 </div>
             </section>
 
-            <!-- Musical Event Panel -->
+            <!-- Mapping Output Panel (hidden in stock mode) -->
             <section class="panel" id="event-panel">
                 <h2>Mapping Output</h2>
                 <div class="features-grid">
                     <div class="feature">
                         <label>pitch</label>
-                        <div class="gauge">
-                            <div class="gauge-track">
-                                <div class="gauge-fill event-fill" id="gauge-pitch_hint"></div>
-                            </div>
-                        </div>
+                        <div class="gauge"><div class="gauge-track"><div class="gauge-fill event-fill" id="gauge-pitch_hint"></div></div></div>
                         <span class="gauge-value" id="val-pitch_hint">0.00</span>
                     </div>
                     <div class="feature">
                         <label>velocity</label>
-                        <div class="gauge">
-                            <div class="gauge-track">
-                                <div class="gauge-fill event-fill" id="gauge-evt-velocity"></div>
-                            </div>
-                        </div>
+                        <div class="gauge"><div class="gauge-track"><div class="gauge-fill event-fill" id="gauge-evt-velocity"></div></div></div>
                         <span class="gauge-value" id="val-evt-velocity">0.00</span>
                     </div>
                     <div class="feature">
                         <label>duration</label>
-                        <div class="gauge">
-                            <div class="gauge-track">
-                                <div class="gauge-fill event-fill" id="gauge-duration_hint"></div>
-                            </div>
-                        </div>
+                        <div class="gauge"><div class="gauge-track"><div class="gauge-fill event-fill" id="gauge-duration_hint"></div></div></div>
                         <span class="gauge-value" id="val-duration_hint">0.00</span>
                     </div>
                     <div class="feature">
                         <label>density</label>
-                        <div class="gauge">
-                            <div class="gauge-track">
-                                <div class="gauge-fill event-fill" id="gauge-density_hint"></div>
-                            </div>
-                        </div>
+                        <div class="gauge"><div class="gauge-track"><div class="gauge-fill event-fill" id="gauge-density_hint"></div></div></div>
                         <span class="gauge-value" id="val-density_hint">0.00</span>
                     </div>
                     <div class="feature">
                         <label>register</label>
-                        <div class="gauge">
-                            <div class="gauge-track">
-                                <div class="gauge-fill event-fill" id="gauge-register_hint"></div>
-                            </div>
-                        </div>
+                        <div class="gauge"><div class="gauge-track"><div class="gauge-fill event-fill" id="gauge-register_hint"></div></div></div>
                         <span class="gauge-value" id="val-register_hint">0.00</span>
                     </div>
                     <div class="feature">
                         <label>urgency</label>
-                        <div class="gauge">
-                            <div class="gauge-track">
-                                <div class="gauge-fill event-fill" id="gauge-urgency"></div>
-                            </div>
-                        </div>
+                        <div class="gauge"><div class="gauge-track"><div class="gauge-fill event-fill" id="gauge-urgency"></div></div></div>
                         <span class="gauge-value" id="val-urgency">0.00</span>
                     </div>
                 </div>
@@ -185,8 +167,9 @@
         <aside id="controls">
             <h2>Controls</h2>
 
-            <div class="control-group">
-                <button id="btn-start-stop" class="btn btn-primary">Stop</button>
+            <div class="control-group" style="display: flex; gap: 8px;">
+                <button id="btn-start-stop" class="btn btn-primary" style="flex:1;">Stop</button>
+                <button id="btn-mute" class="btn" style="flex:1;">Mute</button>
             </div>
 
             <div class="control-group">
@@ -195,6 +178,31 @@
                     <option value="random_walk">Random Walk</option>
                     <option value="stock">Stock Market</option>
                 </select>
+            </div>
+
+            <!-- Symbol inputs (shown in stock mode) -->
+            <div class="control-group" id="symbol-controls" style="display: none;">
+                <label>Symbols (up to 3)</label>
+                <input type="text" id="symbol-1" class="symbol-input" placeholder="e.g. NOS.LS" value="NOS.LS">
+                <input type="text" id="symbol-2" class="symbol-input" placeholder="e.g. EDP.LS" value="EDP.LS">
+                <input type="text" id="symbol-3" class="symbol-input" placeholder="e.g. BRISA.LS" value="BRISA.LS">
+                <button id="btn-apply-symbols" class="btn btn-primary">Apply</button>
+            </div>
+
+            <!-- Sound mode (shown in stock mode) -->
+            <div class="control-group" id="sound-mode-controls" style="display: none;">
+                <label for="ctrl-sound-mode">Sound Mode</label>
+                <select id="ctrl-sound-mode">
+                    <option value="ambient">Ambient (Drone/Pad)</option>
+                    <option value="chord">Chord (Unified Harmony)</option>
+                    <option value="standard">Standard (Piano/Bass)</option>
+                </select>
+            </div>
+
+            <!-- Instrument selectors (dynamic per sound mode) -->
+            <div class="control-group" id="instrument-controls" style="display: none;">
+                <label>Instruments</label>
+                <div id="instrument-selectors"></div>
             </div>
 
             <div class="control-group">
@@ -222,9 +230,11 @@
         </aside>
     </main>
 
+    <script src="/static/js/instruments.js"></script>
     <script src="/static/js/app.js"></script>
     <script src="/static/js/gauges.js"></script>
     <script src="/static/js/pianoroll.js"></script>
+    <script src="/static/js/stockchart.js"></script>
     <script src="/static/js/controls.js"></script>
 </body>
 </html>

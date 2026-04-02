@@ -18,14 +18,14 @@ Each stage is independent and swappable. Data contracts between stages:
 ### Key modules
 
 - `src/cam_to_midi/sources/` — Pluggable data sources. `RandomWalkSource` for testing, `StockSource` for live market data. New sources subclass `BaseSource` and register in `registry.py`.
-- `src/cam_to_midi/perception/` — Sliding-window feature extraction. `extractors.py` contains the 6 feature functions (change_rate, periodicity, intensity, direction, volatility, density). `WindowedPerceptor` buffers samples and emits `FeatureVector`.
+- `src/cam_to_midi/perception/` — Sliding-window feature extraction. `extractors.py` contains the 6 feature functions (change_rate, periodicity, intensity, direction, volatility, density). `WindowedPerceptor` buffers samples and emits `FeatureVector`. `MultiSymbolPerceptor` routes stock samples by symbol to separate windows and tracks price history for the chart.
 - `src/cam_to_midi/mapping/` — Feature-to-music translation. `RuleBasedMapper` uses YAML presets from `config/mappings/`. `MLMapper` uses scikit-learn or a hand-tuned nonlinear fallback.
-- `src/cam_to_midi/engine/` — Musical structure enforcement. `theory.py` has scales/chords/quantization. `sequencer.py` manages beat grid and chord progressions. `engine.py` orchestrates voice leading, multi-channel output (melody ch0, bass ch1, pad ch2, drums ch9).
+- `src/cam_to_midi/engine/` — Musical structure enforcement. `theory.py` has scales/chords/quantization. `sequencer.py` manages beat grid and chord progressions. `engine.py` orchestrates voice leading for standard mode. `ambient_engine.py` contains `AmbientStockEngine` (per-symbol drone/pad voices) and `ChordStockEngine` (fused 3-note chord from all symbols).
 - `src/cam_to_midi/synth/` — Audio output. `FluidSynthBackend` (requires system FluidSynth + a .sf2 SoundFont) or `PygameSynth` fallback.
 - `src/cam_to_midi/pipeline.py` — The async loop wiring all stages.
 - `src/cam_to_midi/config.py` — YAML config loader with nested dataclass building.
 - `src/cam_to_midi/ui/web_server.py` — FastAPI + WebSocket server bridging the pipeline to the web frontend. `WebBridge` class queues pipeline events and broadcasts to connected clients.
-- `src/cam_to_midi/web/static/` — Vanilla HTML/CSS/JS frontend (no build step). `app.js` manages WebSocket, `gauges.js` renders feature bars, `pianoroll.js` draws a canvas note display, `controls.js` handles interactive controls.
+- `src/cam_to_midi/web/static/` — Vanilla HTML/CSS/JS frontend (no build step). `app.js` manages WebSocket, `gauges.js` renders feature bars, `pianoroll.js` draws a canvas note display, `controls.js` handles interactive controls, `stockchart.js` draws the real-time price chart, `instruments.js` manages per-channel GM instrument selection.
 
 ### Configuration
 
@@ -51,8 +51,8 @@ python -m cam_to_midi web
 # Run with synthetic data (no API key needed, terminal mode)
 python -m cam_to_midi demo
 
-# Run with stock data
-python -m cam_to_midi stock AAPL GOOGL
+# Run with stock data (defaults to NOS.LS, EDP.LS, BRISA.LS)
+python -m cam_to_midi stock NOS.LS EDP.LS BRISA.LS
 
 # Override settings via CLI
 python -m cam_to_midi demo --bpm 90 --key Am --scale minor

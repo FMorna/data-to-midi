@@ -16,3 +16,4 @@ class MusicalEvent:
     density_hint: float  # Simultaneous notes: 0=single, 1=full chord
     register_hint: float  # Low (0) to high (1) octave preference
     urgency: float  # Influences tempo micro-adjustments and leap probability
+    symbol: str = ""  # Source symbol — used by ambient engine for channel routing

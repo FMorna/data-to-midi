@@ -1,7 +1,7 @@
 source:
   type: random_walk  # random_walk | stock
   stock:
-    symbols: [AAPL, GOOGL, MSFT]
+    symbols: [NOS.LS, EDP.LS, BRISA.LS]
     provider: yfinance  # yfinance | finnhub
     poll_interval_sec: 2
   random_walk:

@@ -22,6 +22,7 @@ class StockSource(BaseSource):
         self.poll_interval = config.poll_interval_sec
         self._running = False
         self._last_prices: dict[str, float] = {}
+        self._stale_counts: dict[str, int] = {s: 0 for s in self.symbols}
 
     async def start(self) -> None:
         self._running = True
@@ -49,23 +50,51 @@ class StockSource(BaseSource):
             for symbol in self.symbols:
                 try:
                     ticker = yf.Ticker(symbol)
-                    info = ticker.fast_info
-                    price = info.last_price
+                    price = None
+                    volume = 0
+
+                    # Try intraday history first — gives actual minute-bar data
+                    try:
+                        hist = ticker.history(period="1d", interval="1m")
+                        if not hist.empty:
+                            price = float(hist["Close"].iloc[-1])
+                            volume = int(hist["Volume"].iloc[-1]) if "Volume" in hist.columns else 0
+                    except Exception:
+                        pass
+
+                    # Fall back to fast_info if history unavailable
+                    if price is None:
+                        info = ticker.fast_info
+                        price = info.last_price
+                        volume = getattr(info, "last_volume", 0) or 0
+
                     prev = self._last_prices.get(symbol, price)
                     change = price - prev
                     self._last_prices[symbol] = price
+
+                    # Track stale data (price unchanged)
+                    if abs(change) < 0.001:
+                        self._stale_counts[symbol] = self._stale_counts.get(symbol, 0) + 1
+                    else:
+                        self._stale_counts[symbol] = 0
+
+                    is_stale = self._stale_counts.get(symbol, 0) > 5
 
                     yield SourceSample(
                         timestamp=time.time(),
                         values={
                             "price": price,
-                            "volume": getattr(info, "last_volume", 0) or 0,
+                            "volume": volume,
                             "change": change,
                         },
-                        metadata={"source": "stock", "symbol": symbol},
+                        metadata={
+                            "source": "stock",
+                            "symbol": symbol,
+                            "stale": is_stale,
+                        },
                     )
-                except Exception:
-                    pass  # Skip failed ticks silently
+                except Exception as e:
+                    print(f"  [stock] Failed to fetch {symbol}: {e}")
 
             await asyncio.sleep(self.poll_interval)
 

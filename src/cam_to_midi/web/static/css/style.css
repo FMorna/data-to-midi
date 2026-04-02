@@ -343,6 +343,16 @@ main {
     background: rgba(255, 68, 102, 0.25);
 }
 
+.btn-muted {
+    background: rgba(255, 204, 68, 0.15);
+    border-color: var(--accent-yellow);
+    color: var(--accent-yellow);
+}
+
+.btn-muted:hover {
+    background: rgba(255, 204, 68, 0.25);
+}
+
 /* Select & Range */
 select, input[type="range"] {
     width: 100%;
@@ -388,6 +398,86 @@ input[type="range"]::-webkit-slider-thumb {
     background: var(--accent-cyan);
     cursor: pointer;
     border: 2px solid var(--bg-panel);
+}
+
+/* === Stock Chart === */
+#stockchart-panel {
+    position: relative;
+}
+
+#stockchart-canvas {
+    flex: 1;
+    width: 100%;
+    border-radius: var(--radius);
+    background: var(--gauge-bg);
+}
+
+/* === Symbol Inputs === */
+.symbol-input {
+    width: 100%;
+    padding: 8px 10px;
+    background: var(--gauge-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 12px;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+}
+
+.symbol-input:focus {
+    outline: none;
+    border-color: var(--accent-cyan);
+}
+
+.symbol-input::placeholder {
+    color: var(--text-dim);
+    text-transform: none;
+}
+
+/* === Instrument Selectors === */
+.instrument-row {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-bottom: 8px;
+}
+
+.instrument-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.instrument-select {
+    width: 100%;
+    padding: 6px 8px;
+    background: var(--gauge-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 5l3 3 3-3' fill='none' stroke='%238888a0' stroke-width='1.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 6px center;
+    padding-right: 24px;
+}
+
+.instrument-select:focus {
+    outline: none;
+    border-color: var(--accent-cyan);
+}
+
+/* === Stock Mode Layout === */
+body.stock-mode .panel-grid {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
 }
 
 /* === Responsive === */

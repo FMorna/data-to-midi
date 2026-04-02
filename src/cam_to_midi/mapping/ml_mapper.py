@@ -48,6 +48,7 @@ class MLMapper(BaseMapper):
                 density_hint=float(np.clip(pred[3], 0, 1)),
                 register_hint=float(np.clip(pred[4], 0, 1)),
                 urgency=float(np.clip(pred[5], 0, 1)),
+                symbol=features.symbol,
             )
 
         # Default: deterministic nonlinear transform (acts as a learned-like mapper)
@@ -64,4 +65,5 @@ class MLMapper(BaseMapper):
             density_hint=float(np.clip(f.density * 0.6 + f.periodicity * 0.4, 0, 1)),
             register_hint=float(sigmoid(f.direction * 0.5 + f.intensity * 0.5)),
             urgency=float(np.clip(f.volatility * f.intensity, 0, 1)),
+            symbol=f.symbol,
         )

@@ -8,7 +8,7 @@ import yaml
 
 @dataclass
 class StockConfig:
-    symbols: list[str] = field(default_factory=lambda: ["AAPL"])
+    symbols: list[str] = field(default_factory=lambda: ["NOS.LS", "EDP.LS", "BRISA.LS"])
     provider: str = "yfinance"
     poll_interval_sec: float = 5.0
 
@@ -52,6 +52,7 @@ class EngineConfig:
     scale: str = "major"
     time_signature: list[int] = field(default_factory=lambda: [4, 4])
     auto_key_change: bool = True
+    mode: str = "standard"  # "standard" or "ambient_stock"
     velocity_range: list[int] = field(default_factory=lambda: [30, 120])
     channels: dict[str, ChannelConfig] = field(default_factory=lambda: {
         "melody": ChannelConfig(0, 0),

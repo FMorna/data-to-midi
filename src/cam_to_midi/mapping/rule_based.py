@@ -60,4 +60,5 @@ class RuleBasedMapper(BaseMapper):
             density_hint=_get("density_hint"),
             register_hint=_get("register_hint"),
             urgency=_get("urgency"),
+            symbol=features.symbol,
         )

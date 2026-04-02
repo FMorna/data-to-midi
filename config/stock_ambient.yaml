@@ -1,0 +1,35 @@
+source:
+  type: stock
+  stock:
+    symbols: [NOS.LS, EDP.LS, BRISA.LS]
+    provider: yfinance
+    poll_interval_sec: 3
+
+perception:
+  window_size: 20
+
+mapping:
+  type: rule_based
+  preset: stock_ambient
+
+engine:
+  bpm: 75
+  key: C
+  scale: dorian
+  time_signature: [4, 4]
+  auto_key_change: true
+  mode: ambient_stock
+  velocity_range: [20, 80]
+  channels:
+    lead: {channel: 0, program: 81}
+    pad: {channel: 1, program: 89}
+    bass: {channel: 2, program: 39}
+    atmosphere: {channel: 3, program: 92}
+
+synth:
+  backend: fluidsynth
+  soundfont: soundfonts/GeneralUser_GS.sf2
+  gain: 0.8
+
+ui:
+  show_dashboard: true
